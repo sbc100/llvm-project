@@ -91,9 +91,24 @@ local_struct_internal_ptr:
 # CHECK-NEXT:           Opcode:          [[PTR]]_CONST
 # CHECK-NEXT:           Value:           1040
 
+## When initial-memory and maximum-memory are the same the memory is not
+## growable so we don't include the max at all.
 
 # RUN: wasm-ld -no-gc-sections --allow-undefined --no-entry \
 # RUN:     --initial-memory=131072 --max-memory=131072 -o %t_max.wasm %t32.o \
+# RUN:     %t.hello32.o
+# RUN: obj2yaml %t_max.wasm | FileCheck %s -check-prefix=CHECK-NOMAX
+
+# CHECK-MAX:        - Type:            MEMORY
+# CHECK-MAX-NEXT:     Memories:
+# CHECK-MAX-NEXT:       - Flags:           [ ]
+# CHECK-MAX-NEXT:         Minimum:         0x2
+# CHECK-MAX-NOT:          Maximum:
+
+## When memory-memory is larger we do include the maximum.
+
+# RUN: wasm-ld -no-gc-sections --allow-undefined --no-entry \
+# RUN:     --initial-memory=131072 --max-memory=196608 -o %t_max.wasm %t32.o \
 # RUN:     %t.hello32.o
 # RUN: obj2yaml %t_max.wasm | FileCheck %s -check-prefix=CHECK-MAX
 
@@ -101,7 +116,7 @@ local_struct_internal_ptr:
 # CHECK-MAX-NEXT:     Memories:
 # CHECK-MAX-NEXT:       - Flags:           [ HAS_MAX ]
 # CHECK-MAX-NEXT:         Minimum:         0x2
-# CHECK-MAX-NEXT:         Maximum:         0x2
+# CHECK-MAX-NEXT:         Maximum:         0x3
 
 # RUN: wasm-ld -no-gc-sections --allow-undefined --no-entry --shared-memory \
 # RUN:     --features=atomics,bulk-memory --initial-memory=131072 \

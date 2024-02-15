@@ -351,7 +351,8 @@ void TableSection::assignIndexes() {
 void MemorySection::writeBody() {
   raw_ostream &os = bodyOutputStream;
 
-  bool hasMax = maxMemoryPages != 0 || config->sharedMemory;
+  bool hasMax = (maxMemoryPages && maxMemoryPages != numMemoryPages) ||
+                config->sharedMemory;
   writeUleb128(os, 1, "memory count");
   unsigned flags = 0;
   if (hasMax)
